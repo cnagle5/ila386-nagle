@@ -1,0 +1,26 @@
+---
+title: "Class Code"
+author: "Charlie Nagle"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+install.packages("tidyverse")
+library(tidyverse)
+```
+
+## Winter Chapter 1
+
+this is code from chapter 1 of the winter textbook.
+
+```{r}
+numbers <- c(18, 1024, 92, 73, 14)
+sum(numbers)
+mean(numbers)
+sd(numbers) %>% round(digits = 2) # can include 'digits =' but don't need to because r recognizes the order of arguments; round(digits = 2) is the same as round(2)
+sd(numbers) %>% round(2)
+
+names <- c("dana", "charlie", "louis", "ari") # store these names as a list; reminder c() stands for concatenate
+```
