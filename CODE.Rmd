@@ -95,7 +95,8 @@ data_nettle %>%
   mutate(
     MGS_cat = case_when(
       MGS <  6 ~ "dry",
-      MGS >= 6 ~ "fertile"
+      MGS >= 6 ~ "fertile",
+      .unmatched = "error"
     )
   ) %>%
   group_by(MGS_cat) %>%
@@ -116,5 +117,37 @@ data_nettle %>%
   ) %>%
   group_by(MGS_cat) %>%
   summarize(LangSum = sum(Langs))
+
+# sanity check: does case_when operate the way i think it does
+data_nettle %>%
+  mutate(
+    MGS_cat = case_when(
+      MGS <  4 ~ "very dry",
+      MGS <  6 ~ "dry",
+      MGS <  8 ~ "fertile",
+      MGS >= 8 ~ "very fertile",
+      .unmatched = "error")
+    ) %>%
+  group_by(MGS_cat) %>%
+  count()
+
+# get descriptive statistics for the smallpopulation data
+data_nettle %>%
+  filter(Population < 4) %>%
+  mutate(
+    MGS_cat = case_when(
+      MGS <  4 ~ "very dry",
+      MGS <  6 ~ "dry",
+      MGS <  8 ~ "fertile",
+      MGS >= 8 ~ "very fertile",
+      .unmatched = "error"
+    ),
+    MGS_cat = fct_relevel(MGS_cat, "very dry", "dry", "fertile", "very fertile")
+  ) %>%
+  group_by(MGS_cat) %>%
+  summarize(mean = mean(Langs) %>% round(2),
+            sd = sd(Langs) %>% round(2),
+            min = min(Langs),
+            max = max(Langs))
 ```
 
