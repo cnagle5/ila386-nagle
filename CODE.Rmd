@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # load tidyverse
 library(tidyverse)
+library(here)
 ```
 
 ## Winter Chapter 1
@@ -44,3 +45,76 @@ ggplot(data = data_nettle, aes(x = Population, y = Area)) +
 ggplot(data_nettle, aes(Population)) +
   geom_histogram()
 ```
+
+##  Winter Chapter 2
+
+### 2.11.3
+
+```{r}
+data_nettle <- read_csv(here("Data", "nettle_1999_climate.csv"))
+# show data only for Benin
+data_nettle %>%
+  filter(Country == "Benin")
+# show data from Benin and Zaire
+data_nettle %>%
+  filter(Country %in% c("Benin", "Zaire"))
+# show only Langs column
+data_nettle %>%
+  select(Langs)
+# show Langs data for Benin
+data_nettle %>%
+  filter(Country == "Benin") %>%
+  select(Langs)
+# show data for Population to MGS columns for Benin
+data_nettle %>%
+  filter(Country == "Benin") %>%
+  select(Population:MGS)
+# return rows where Langs > 200
+data_nettle %>%
+  filter(Langs > 200)
+# return rows where Langs > 200 and Population < median(Population)
+data_nettle %>%
+  filter(Langs > 200,
+         Population < median(Population))
+```
+
+### 2.11.4
+
+```{r}
+data_nettle %>%
+  filter(Population < 4) %>%
+  mutate(
+   MGS_cat = ifelse(MGS < 6, "dry", "fertile") 
+  ) %>%
+  group_by(MGS_cat) %>%
+  summarize(LangSum = sum(Langs))
+
+# using case_when
+data_nettle %>%
+  filter(Population < 4) %>%
+  mutate(
+    MGS_cat = case_when(
+      MGS <  6 ~ "dry",
+      MGS >= 6 ~ "fertile"
+    )
+  ) %>%
+  group_by(MGS_cat) %>%
+  summarize(LangSum = sum(Langs))
+
+# example
+data_nettle %>%
+  filter(Population < 4) %>%
+  mutate(
+    MGS_cat = case_when(
+      MGS <  4 ~ "very dry",
+      MGS <  6 ~ "dry",
+      MGS <  8 ~ "fertile",
+      MGS >= 8 ~ "very fertile",
+      .unmatched = "error"
+    ),
+    MGS_cat = fct_relevel(MGS_cat, "very dry", "dry", "fertile", "very fertile")
+  ) %>%
+  group_by(MGS_cat) %>%
+  summarize(LangSum = sum(Langs))
+```
+
