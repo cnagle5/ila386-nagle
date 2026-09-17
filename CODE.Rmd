@@ -151,3 +151,85 @@ data_nettle %>%
             max = max(Langs))
 ```
 
+## Winter Chapter 3
+
+```{r}
+# generate and plot a normal distribution
+rnorm(50) %>%
+  hist() # base r
+
+# set the mean and sd
+rnorm(50, 71.82, 10.42) %>%
+  hist() 
+
+# with ggplot
+rnorm(50, 71.82, 10.42) %>%
+  as.data.frame() %>%
+  rename(score = 1) %>%
+  ggplot(aes(x = score)) +
+  geom_histogram(color = "black", fill = "white")
+
+# with 12 participants
+rnorm(12, 71.82, 10.42) %>%
+  as.data.frame() %>%
+  rename(score = 1) %>%
+  ggplot(aes(x = score)) +
+  geom_histogram(color = "black", fill = "white")
+# with 1200
+rnorm(1200, 71.82, 10.42) %>%
+  as.data.frame() %>%
+  rename(score = 1) %>%
+  ggplot(aes(x = score)) +
+  geom_histogram(color = "black", fill = "white")
+
+# how would we screen / filter scores > 100 and < 0
+
+
+```
+
+### Emotional valence
+
+```{r}
+# read the data
+data_war <- read_csv(here("Data", "warriner_2013_emotional_valence.csv"))
+
+# look at the variables
+glimpse(data_war)
+
+# take the range using base r
+range(data_war$Val)
+
+# look up the word with the minimum and maximum valence (return the row matching those conditions)
+data_war %>%
+  filter(Val == min(Val) | Val == max(Val))
+
+# what else could we do with the data
+```
+
+### 3.10.1
+
+```{r}
+data_war %>%
+  ggplot(aes(x = Val)) +
+  geom_histogram(color = "black", fill = "white") +
+  geom_vline(xintercept = mean(data_war$Val), size = 2) +
+  geom_vline(xintercept = mean(data_war$Val) - sd(data_war$Val), linetype = "dashed") +
+  geom_vline(xintercept = mean(data_war$Val) + sd(data_war$Val), linetype = "dashed") +
+  geom_vline(xintercept = mean(data_war$Val) - 2*sd(data_war$Val), linetype = "dashed") +
+  geom_vline(xintercept = mean(data_war$Val) + 2*sd(data_war$Val), linetype = "dashed") +
+  theme_minimal()
+```
+
+### 3.10.2
+
+```{r}
+data_war %>%
+  ggplot(aes(x = Val)) +
+  geom_density(color = "black", fill = "white") +
+  geom_vline(xintercept = mean(data_war$Val), size = 2) +
+  geom_vline(xintercept = mean(data_war$Val) - sd(data_war$Val), linetype = "dashed") +
+  geom_vline(xintercept = mean(data_war$Val) + sd(data_war$Val), linetype = "dashed") +
+  geom_vline(xintercept = mean(data_war$Val) - 2*sd(data_war$Val), linetype = "dashed") +
+  geom_vline(xintercept = mean(data_war$Val) + 2*sd(data_war$Val), linetype = "dashed") +
+  theme_minimal()
+```
