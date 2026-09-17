@@ -158,6 +158,13 @@ data_nettle %>%
 rnorm(50) %>%
   hist() # base r
 
+# non-base r version
+rnorm(50) %>%
+  as.data.frame() %>%      # make a data frame
+  rename(score = 1) %>%    # rename the variable
+  ggplot(aes(x = score)) + # make the plot
+  geom_histogram()
+
 # set the mean and sd
 rnorm(50, 71.82, 10.42) %>%
   hist() 
@@ -183,8 +190,23 @@ rnorm(1200, 71.82, 10.42) %>%
   geom_histogram(color = "black", fill = "white")
 
 # how would we screen / filter scores > 100 and < 0
+rnorm(1200, 71.82, 10.42) %>%
+  as.data.frame() %>%
+  rename(score = 1) %>%
+  filter(score <= 100) %>%
+  ggplot(aes(x = score)) +
+  geom_histogram(color = "black", fill = "white")
 
-
+# convert to sds
+rnorm(1200, 71.82, 10.42) %>%
+  as.data.frame() %>%
+  rename(score = 1) %>%
+  filter(score <= 100) %>%
+  mutate(
+    score.z = scale(score) # take the z score (standardize)
+  ) %>%
+  ggplot(aes(x = score.z)) +
+  geom_histogram(color = "black", fill = "white")
 ```
 
 ### Emotional valence
@@ -233,3 +255,37 @@ data_war %>%
   geom_vline(xintercept = mean(data_war$Val) + 2*sd(data_war$Val), linetype = "dashed") +
   theme_minimal()
 ```
+
+### boxplots
+
+```{r}
+# valence of words a vs p
+library(stringr)
+data_war %>%
+  mutate(
+    word_type = case_when(
+      str_detect(Word, "^a") ~ "a",
+      str_detect(Word, "^p") ~ "p",
+      .default = "error"
+    )
+  ) %>%
+  filter(word_type != "error") %>%
+  ggplot(aes(x = word_type, y = Val)) +
+  geom_boxplot() +
+  theme_minimal()
+
+# creating a valence factor with levels low, medium, high
+data_war %>%
+  mutate(
+    word_type = case_when(
+      Val < 3 ~ "low",
+      Val < 7 ~ "medium",
+      Val >= 7 ~ "high",
+      .default = "error"),
+    word_type = fct_relevel(word_type, "low", "medium", "high")
+  ) %>%
+  ggplot(aes(x = word_type, y = Val)) +
+  geom_boxplot() +
+  theme_minimal()
+```
+
