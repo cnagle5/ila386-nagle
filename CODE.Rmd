@@ -8,9 +8,10 @@ output: html_document
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-# load tidyverse
+# load packages
 library(tidyverse)
 library(here)
+library(broom)
 ```
 
 ## Winter Chapter 1
@@ -256,7 +257,7 @@ data_war %>%
   theme_minimal()
 ```
 
-### boxplots
+### Boxplots
 
 ```{r}
 # valence of words a vs p
@@ -287,5 +288,131 @@ data_war %>%
   ggplot(aes(x = word_type, y = Val)) +
   geom_boxplot() +
   theme_minimal()
+```
+
+## Winter Chapter 4
+
+```{r}
+# generate predictor
+x <- rnorm(50)
+# generate outcome
+y <- 10 + 3*x
+# generate error
+error <- rnorm(50)
+# remake outcome
+y <- 10 + 3*x + error
+
+# make this into a dataframe
+df <- tibble(
+  predictor = x,
+  outcome = y
+  )
+
+# fit a regression and get a tidy output
+fm <- lm(outcome ~ predictor, df)
+tidy(fm)
+# rounding to three decimals
+tidy(fm) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+# add predicted values to df (predictions for actual observations)
+df <- df %>%
+  mutate(
+    fitted = predict(fm),
+    residual = fitted - outcome
+  )
+# create a new set of values and predict
+df_prediction <- tibble(predictor = seq(-3, 3, 0.1))
+df_prediction$predicted <- predict(fm, newdata = df_prediction)
+
+# make a plot
+ggplot(df, aes(predictor, outcome)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_minimal()
+```
+
+### 4.10.1
+
+```{r}
+# read, convert variables to lowercase, and inspect the data
+data_elp <- read_csv(here("Data", "ELP_frequency.csv")) %>%
+  rename_with(tolower)
+glimpse(data_elp)
+# make log variable
+data_elp <- data_elp %>%
+  mutate(
+    freq.log = log10(freq)
+  )
+# fit and inspect the model
+fm <- lm(rt ~ freq.log, data_elp)
+tidy(fm) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+# make a plot
+ggplot(data_elp, aes(freq.log, rt)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  geom_hline(yintercept = mean(data_elp$rt)) +
+  theme_minimal()
+# how would we label the words?
+# how would we fix the resulting plot?
+# (prevent words from being cut off)
+# (show words on top of the fit line)
+
+# updated plot
+ggplot(data_elp, aes(freq.log, rt, label = word)) +
+  geom_smooth(method = "lm") +
+  geom_label() +
+  geom_hline(yintercept = mean(data_elp$rt)) +
+  scale_x_continuous(limits = c(0, 5)) +
+  labs(
+    x = "Log10(Frequency)",
+    y = "RT"
+  ) + 
+  theme_minimal()
+```
+
+### 4.10.2
+
+```{r}
+fm <- lm(outcome ~ predictor, df)
+fm_null <- lm(outcome ~ 1, df)
+
+# compute r2
+1 - sum((residuals(fm)^2)) / sum((residuals(fm_null)^2))
+glance(fm)
+```
+
+## Data Simulation
+
+```{r}
+# simple version with 20 participants and 10 items
+# participants
+participants <- 20
+# items
+items <- 10
+# groups
+groups <- 2
+# make a grid (cross everything)
+df <- expand.grid(
+  participant = factor(1:participants),
+  item = factor(1:items),
+  group = factor(1:groups)
+) %>%
+  mutate(rt = rnorm(400, 500, 100))
+df %>%
+  ggplot(aes(x = rt, fill = group)) +
+  geom_histogram()
+min(df$rt)
+# how can we simulate different values using rnorm()?
+# how do we add group a vs b?
+# how can we simulate b responds more quickly than a?
 ```
 
