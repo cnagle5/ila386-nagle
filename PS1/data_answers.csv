@@ -1,0 +1,131 @@
+﻿sentence,target verb,stem vowel,tense,subject,verb conjugation,type,answer
+Afortunadamente vencimos,vencer,NA,past,Nosotros,vencimos,filler,nosotros
+Aqui lo conoci,conocer,NA,past,Yo,conocí,filler,yo
+Asi dijeron,decir,NA,past,Ellos,dijeron,filler,ellos
+Asi lo dijiste,decir,NA,past,Tú,dijiste,filler,tu
+De repente vino,venir,NA,past,Él,vino,filler,el
+En el bolsillo lo puso,poner,NA,past,Él,puso,filler,el
+En la montana corrimos,correr,NA,past,Nosotros,corrimos,filler,nosotros
+En la montana lo perdieron,perder,NA,past,Ellos,perdieron,filler,ellos
+En octubre naciste,nacer,NA,past,Tú,naciste,filler,tu
+Entonces murio,morir,NA,past,Él,murio,filler,el
+Feliz vivieron,vivir,NA,past,Ellos,vivieron,filler,ellos
+Finalmente lo rompiste,romper,NA,past,Tú,rompiste,filler,tu
+Jamas vino,venir,NA,past,Él,vino,filler,el
+Lamentablemente perdimos,perder,NA,past,Nosotros,perdimos,filler,nosotros
+Lentamente movieron,movir,NA,past,Ellos,movieron,filler,ellos
+Luego lo bebio,beber,NA,past,Él,bebio,filler,el
+Realmente lo quiso,querer,NA,past,Él,quiso,filler,el
+Seguramente lo cubrio,cubrir,NA,past,Él,cubrio,filler,el
+Simultaneamente lo cumpliste,complir,NA,past,Tú,cumpliste,filler,tu
+Tampoco sufriste,sufrir,NA,past,Tú,sufriste,filler,eu
+Constantemente comemos,comer,NA,present,Nosotros,comemos,filler,nosotros
+De repente vuelve,volver,NA,present,Él,vuelve,filler,el
+En la montana suben,subir,NA,present,Ellos,suben,filler,ellos
+En un apartamento vive,vivir,NA,present,Él,vive,filler,el
+Jamas lo pedimos,pedir,NA,present,Nosotros,pedimos,filler,nosotros
+Ligeramente corren,correr,NA,present,Ellos,corren,filler,ellos
+Para nada sirve,servir,NA,present,Él,sirve,filler,el
+Siempre mentimos,mentir,NA,present,Nosotros,mentimos,filler,nosotros
+Siempre salimos,salir,NA,present,Nosotros,salimos,filler,nosotros
+Tambien duermen,dormir,NA,present,Ellos,duermen,filler,ellos
+Tambien lo tiene,tener,NA,present,Él,tiene,filler,el
+Tampoco lo venden,vender,NA,present,Ellos,venden,filler,ellos
+Aca lo invito,invitar,i,past,Él,invitó,target,el
+Apenas grito,gritar,i,past,Él,gritó,target,el
+Apenas lo corto,cortar,o,past,Él,cortó,target,el
+Aqui lo marco,marcar,a,past,Él,marcó,target,el
+Contento canto,cantar,a,past,Él,cantó,target,el
+Contento llego,llegar,e,past,Él,llegó,target,el
+Contento pinto,pintar,i,past,Él,pintó,target,el
+Contento salto,saltar,a,past,Él,saltó,target,el
+Contento toco,tocar,o,past,Él,tocó,target,el
+Despues lo agoto,agotar,o,past,Él,agotó,target,el
+Despues lo clono,clonar,o,past,Él,clonó,target,el
+Despues lo creo,crear,e,past,Él,creó,target,el
+Despues lo curo,curar,u,past,Él,curó,target,el
+Despues lo dejo,dejar,e,past,Él,dejó,target,el
+Despues lo quito,quitar,i,past,Él,quitó,target,el
+Despues lo tiro,tirar,i,past,Él,tiró,target,el
+Despues lo tosto,tostar,o,past,Él,tostó,target,el
+Despues lo trago,tragar,a,past,Él,tragó,target,el
+En la pared lo fijo,fijar,i,past,Él,fijó,target,el
+Feliz lo beso,besar,e,past,Él,besó,target,el
+Feliz lo salvo,salvar,a,past,Él,salvó,target,el
+Igual lo compro,comprar,o,past,Él,compró,target,el
+Igual lo dudo,dudar,u,past,Él,dudó,target,el
+Igual lo limito,limitar,i,past,Él,limitó,target,el
+Igual lo pego,pegar,e,past,Él,pegó,target,el
+Igual lo trato,tratar,a,past,Él,trató,target,el
+Luego miro,mirar,i,past,Él,miró,target,el
+Luego rezo,rezar,e,past,Él,rezó,target,el
+Nunca ceno,cenar,e,past,Él,cenó,target,el
+Nunca fumo,fumar,u,past,Él,fumó,target,el
+Por ello lucho,luchar,u,past,Él,luchó,target,el
+Por eso llamo,llamar,a,past,Él,llamó,target,el
+Por la calle cruzo,cruzar,u,past,Él,cruzó,target,el
+por la escalera bajo,bajar,a,past,Él,bajó,target,el
+Sin duda entro,entrar,e,past,Él,entró,target,el
+Sin duda gano,ganar,a,past,Él,ganó,target,el
+Sin duda lloro,llorar,o,past,Él,lloró,target,el
+Sin duda oro,orar,o,past,Él,oró,target,el
+Sin duda sumo,sumar,u,past,Él,sumó,target,el
+Sin evidencia juzgo,juzgar,u,past,Él,juzgó,target,el
+Tambien le gusto,gustar,u,past,Él,gustó,target,el
+Tambien lo busco,buscar,u,past,Él,buscó,target,el
+Tambien lo cito,citar,i,past,Él,citó,target,el
+Tambien lo filmo,filmar,i,past,Él,filmó,target,el
+Tambien lo juro,jurar,u,past,Él,juró,target,el
+Tambien lo llevo,llevar,e,past,Él,llevó,target,el
+Tambien lo logro,lograr,o,past,Él,logró,target,el
+Tambien lo presto,prestar,e,past,Él,prestó,target,el
+Tambien paro,parar,a,past,Él,paró,target,el
+Aca lo invito,invitar,i,present,Yo,invito,target,yo
+Apenas grito,gritar,i,present,Yo,grito,target,yo
+Apenas lo corto,cortar,o,present,Yo,corto,target,yo
+Aqui lo marco,marcar,a,present,Yo,marco,target,yo
+Contento canto,cantar,a,present,Yo,canto,target,yo
+Contento llego,llegar,e,present,Yo,llego,target,yo
+Contento pinto,pintar,i,present,Yo,pinto,target,yo
+Contento salto,saltar,a,present,Yo,salto,target,yo
+Contento toco,tocar,o,present,Yo,toco,target,yo
+Despues lo agoto,agotar,o,present,Yo,agoto,target,yo
+Despues lo clono,clonar,o,present,Yo,clono,target,yo
+Despues lo creo,crear,e,present,Yo,creo,target,yo
+Despues lo curo,curar,u,present,Yo,curo,target,yo
+Despues lo dejo,dejar,e,present,Yo,dejo,target,yo
+Despues lo quito,quitar,i,present,Yo,quito,target,yo
+Despues lo tiro,tirar,i,present,Yo,tiro,target,yo
+Despues lo tosto,tostar,o,present,Yo,tosto,target,yo
+Despues lo trago,tragar,a,present,Yo,trago,target,yo
+En la pared lo fijo,fijar,i,present,Yo,fijo,target,yo
+Feliz lo beso,besar,e,present,Yo,beso,target,yo
+Feliz lo salvo,salvar,a,present,Yo,salvo,target,yo
+Igual lo compro,comprar,o,present,Yo,compro,target,yo
+Igual lo dudo,dudo,u,present,Yo,dudo,target,yo
+Igual lo limito,limitar,i,present,Yo,limito,target,yo
+Igual lo pego,pegar,e,present,Yo,pego,target,yo
+Igual lo trato,tratar,a,present,Yo,trato,target,yo
+Luego miro,mirar,i,present,Yo,miro,target,yo
+Luego rezo,rezar,e,present,Yo,rezo,target,yo
+Nunca ceno,cenar,e,present,Yo,ceno,target,yo
+Nunca fumo,fumar,u,present,Yo,fumo,target,yo
+Por ello lucho,luchar,u,present,Yo,lucho,target,yo
+Por eso llamo,llamar,a,present,Yo,llamo,target,yo
+Por la calle cruzo,cruzar,u,present,Yo,cruzo,target,yo
+Por la escalera bajo,bajar,a,present,Yo,bajo,target,yo
+Sin duda entro,entrar,e,present,Yo,entro,target,yo
+Sin duda gano,ganar,a,present,Yo,gano,target,yo
+Sin duda lloro,llorar,o,present,Yo,lloro,target,yo
+Sin duda oro,orar,o,present,Yo,oro,target,yo
+Sin duda sumo,sumar,u,present,Yo,sumo,target,yo
+Sin evidencia juzgo,juzgar,u,present,Yo,juzgo,target,yo
+Tambien le gusto,gustar,u,present,Yo,gusto,target,yo
+Tambien lo busco,buscar,u,present,Yo,busco,target,yo
+Tambien lo cito,citar,i,present,Yo,cito,target,yo
+Tambien lo filmo,filmar,i,present,Yo,filmo,target,yo
+Tambien lo juro,jurar,u,present,Yo,juro,target,yo
+Tambien lo llevo,llevar,e,present,Yo,llevo,target,yo
+Tambien lo logro,lograr,o,present,Yo,logro,target,yo
+Tambien lo presto,prestar,e,present,Yo,presto,target,yo
+Tambien paro,parar,a,present,Yo,paro,target,yo
