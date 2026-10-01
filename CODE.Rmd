@@ -406,14 +406,20 @@ df <- expand.grid(
   item = factor(1:items),
   group = factor(1:groups)
 ) %>%
-  mutate(rt = rnorm(400, 500, 100))
+  mutate(
+    group = ifelse(group == 1, "a", "b"),
+    group.numeric = ifelse(group == "a", 0, 1),
+    rt_a = rnorm(400, 500, 100),
+    rt_b = rnorm(400, 500, 100),
+    rt_b = rt_b - rnorm(400, 10, 10)
+    )
 df %>%
   ggplot(aes(x = rt, fill = group)) +
   geom_histogram()
 min(df$rt)
 # how can we simulate different values using rnorm()? done
 # how do we add group a vs b? done
-# how can we simulate b responds more quickly than a?
+# how can we simulate b responds more quickly than a? (1.2x more quickly)
 ```
 
 ## Winter Chapter 5
@@ -510,7 +516,8 @@ lm(scale(rt_log) ~ 0 + freq_log10_z, data_elp) %>%
 # in this chapter, we dealt with frequency
 # in the next, we will add word length
 # what is the interpretation of the intercept for the following models
-# rt ~ frequency + length
-# rt ~ frequency_c + length_c
+# rt ~ frequency + length (frequency = 0 and length = 0, no!)
+# rt ~ frequency_c + length_c (frequency = mean(frequency) and length = mean(length))
+# rt ~ frequency_c(mean) + length_c(3syllables)
 ```
 
