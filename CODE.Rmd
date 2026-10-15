@@ -584,13 +584,15 @@ tidy(fm_z)
 # what can we do about the assumptions
 # plot the data
 ggplot(data_elp, aes(log10freq, rt)) +
-  geom_point(alpha = 0.5) +
+  # geom_point(alpha = 0.5) +
   stat_smooth(method = "lm", linetype = "dashed") +
-  stat_smooth() # some nonlinearity
+  stat_smooth() + # some nonlinearity
+  theme_minimal()
 ggplot(data_elp, aes(length, rt)) +
-  geom_point(alpha = 0.5) +
+  geom_point(alpha = 0.01) +
   stat_smooth(method = "lm", linetype = "dashed") +
-  stat_smooth() # mostly linear
+  stat_smooth() + # mostly linear
+  theme_minimal()
 # try a polynomial predictor for frequency
 data_elp <- data_elp %>%
   mutate(
