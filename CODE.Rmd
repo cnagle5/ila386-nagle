@@ -521,3 +521,111 @@ lm(scale(rt_log) ~ 0 + freq_log10_z, data_elp) %>%
 # rt ~ frequency_c(mean) + length_c(3syllables)
 ```
 
+## Winter Chapter 6
+
+```{r}
+# read the data
+data_icon <- read_csv(here("Data", "perry_winter_2017_iconicity.csv")) %>%
+  rename_with(tolower) %>%
+  mutate(
+    freq_log10 = log10(freq),
+    freq_log10.z = scale(freq_log10),
+    ser.z = scale(ser),
+    corteseimag.z = scale(corteseimag),
+    syst.z = scale(syst)
+  )
+# inspect it
+glimpse(data_icon)
+
+# fit the model with non-standardized variables
+fm <- lm(iconicity ~ ser + corteseimag + syst + freq_log10,
+   data = data_icon)
+
+# with standardized variables
+fm_z <- lm(iconicity ~ ser.z + corteseimag.z + syst.z + freq_log10.z,
+   data = data_icon)
+glance(fm_z) # r2 does not change
+tidy(fm_z) %>% # estimates do
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+
+# check assumptions
+# plot generates four plots that may be useful to you
+plot(fm_z)
+# these look fine because nothing is ever perfectly normal
+
+# check for collinearity
+# install.packages("car")
+car::vif(fm_z) # these are fine (< 4 is desirable)
+```
+
+### 6.7.1
+
+```{r}
+data_elp <- read_csv(here("Data", "ELP_full_length_frequency.csv")) %>%
+  rename_with(tolower) %>%
+  mutate(
+    freq_log10.z = scale(log10freq),
+    length.z = scale(length)
+  )
+
+fm_z <- lm(rt ~ freq_log10.z + length.z,
+           data = data_elp)
+# check assumptions
+plot(fm_z) # not good
+# vif
+car::vif(fm_z)
+# inspect estimates
+tidy(fm_z)
+
+# what can we do about the assumptions
+# plot the data
+ggplot(data_elp, aes(log10freq, rt)) +
+  geom_point(alpha = 0.5) +
+  stat_smooth(method = "lm", linetype = "dashed") +
+  stat_smooth() # some nonlinearity
+ggplot(data_elp, aes(length, rt)) +
+  geom_point(alpha = 0.5) +
+  stat_smooth(method = "lm", linetype = "dashed") +
+  stat_smooth() # mostly linear
+# try a polynomial predictor for frequency
+data_elp <- data_elp %>%
+  mutate(
+    freq_log10.quad = poly(log10freq, 2)
+  )
+# refit and check
+fm_z2 <- lm(rt ~ freq_log10.quad + length.z,
+           data = data_elp)
+plot(fm_z2) # a bit better in terms of variance but normality of residuals is still a problem
+tidy(fm_z2)
+# is this model better
+anova(fm_z, fm_z2) # yes
+# poly creates orthogonal (uncorrelated) polynomials
+# can also do this manually
+data_elp <- data_elp %>%
+  mutate(
+    freq_linear = freq_log10.z,
+    freq_quad = freq_linear*freq_linear
+    )
+# refit
+fm_z2 <- lm(rt ~ freq_linear + freq_quad + length.z,
+           data = data_elp)
+tidy(fm_z2) # values are now interpretable on the original scale
+# check vif
+car::vif(fm_z2)
+# make a plot
+data_elp <- data_elp %>%
+  mutate(
+    predicted = predict(fm_z2)
+  )
+ggplot(data_elp, aes(freq_log10.z, predicted)) +
+  stat_smooth() +
+  theme_minimal() +
+  labs(x = "log10(frequency)", y = "reaction time")
+# tell me what this is actually predicting? 
+# are we predicting the effect of frequency when length = 0 (the mean word length)?
+```
+
