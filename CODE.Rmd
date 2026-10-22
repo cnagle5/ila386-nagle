@@ -708,6 +708,18 @@ fm_sum %>% tidy() %>%
   )
 # why is the estimate for modality_sum1 half of the estimate of modality from the treatment-coded model?
 # how might we address that, if we wanted to?
+# add a contrast-coded variable
+data_ts <- data_ts %>%
+  mutate(
+    modality_contrast = ifelse(modality == "Smell", -.5, .5)
+  )
+lm(val ~ modality_contrast, data_ts) %>% 
+  tidy() %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
 
 # all senses
 fm_all <- lm(val ~ modality, data_senses)
@@ -739,6 +751,11 @@ fm_all %>% tidy() %>%
   )
 # what do the estimates represent?
 # hint: look at the contr.sum(5) matrix
+data_senses %>%
+  group_by(modality) %>%
+  summarize(
+    mean = mean(val) %>% round(2)
+  )
 ```
 
 ### 7.12.1
