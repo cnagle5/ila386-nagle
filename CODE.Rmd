@@ -631,3 +631,168 @@ ggplot(data_elp, aes(freq_log10.z, predicted)) +
 # are we predicting the effect of frequency when length = 0 (the mean word length)?
 ```
 
+## Winter Chapter 7
+
+```{r}
+data_senses <- read_csv(here("Data", "winter_2016_senses_valence.csv")) %>%
+  rename_with(tolower)
+glimpse(data_senses)
+
+# tabulate how many words per modality
+# histogram by modality
+
+# only smell and taste words
+data_ts <- data_senses %>%
+  filter(modality %in% c("Taste", "Smell"))
+table(data_ts$modality)
+data_ts %>%
+  group_by(modality) %>%
+  summarize(mean = mean(val), sd = sd(val)) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 2)
+    )
+  )
+
+# plots
+data_ts %>%
+  ggplot(aes(modality, val, fill = modality)) +
+  geom_boxplot() +
+  theme_minimal()
+# violin
+data_ts %>%
+  ggplot(aes(modality, val, fill = modality)) +
+  geom_violin(alpha = 0.5) +
+  geom_jitter(height = 0, width = 0.1, shape = 21) +
+  theme_minimal()
+
+# treatment model
+fm_treat <- lm(val ~ modality, data_ts)
+fm_treat %>% tidy() %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+
+# predictions
+ts_preds <- tibble(modality = unique(data_ts$modality))
+ts_preds$fit <- predict(fm_treat, ts_preds)
+
+# change the reference and refit
+data_ts <- data_ts %>%
+  mutate(
+    modality = fct_relevel(modality, c("Taste", "Smell"))
+  )
+lm(val ~ modality, data_ts) %>%
+  tidy() %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+# same value but negative
+
+# add a new sum-coded variable
+data_ts <- data_ts %>%
+  mutate(
+    modality_sum = modality,
+  )
+contrasts(data_ts$modality_sum) <- contr.sum(2)
+fm_sum <- lm(val ~ modality_sum, data_ts)
+fm_sum %>% tidy() %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+# why is the estimate for modality_sum1 half of the estimate of modality from the treatment-coded model?
+# how might we address that, if we wanted to?
+
+# all senses
+fm_all <- lm(val ~ modality, data_senses)
+fm_all %>% tidy() %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+# can compute by hand or use predict
+sense_preds <- tibble(modality = sort(unique(data_senses$modality)))
+sense_preds$fit <- round(predict(fm_all, sense_preds), 3)
+# assumptions
+plot(fm_all)
+
+# what if we sum-coded all five senses?
+contr.sum(5)
+data_senses <- data_senses %>%
+  mutate(
+    modality_sum = as.factor(modality),
+  )
+contrasts(data_senses$modality_sum) <- contr.sum(5)
+fm_all <- lm(val ~ modality_sum, data_senses)
+fm_all %>% tidy() %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+# what do the estimates represent?
+# hint: look at the contr.sum(5) matrix
+```
+
+### 7.12.1
+
+```{r}
+data_senses %>%
+  ggplot(aes(modality, val)) +
+  geom_boxplot() +
+  theme_minimal()
+
+# separate plots
+data_senses %>%
+  ggplot(aes(val, fill = modality)) +
+  geom_density(alpha = 0.5) +
+  theme_minimal()
+data_senses %>%
+  ggplot(aes(val, fill = modality)) +
+  geom_density(alpha = 0.5) +
+  theme_minimal() +
+  facet_wrap(~ modality, ncol = 5)
+```
+
+### 7.12.2 
+
+```{r}
+lyn <- read_csv(here("Data", "lynott_connell_2009_modality.csv")) %>%
+  rename_with(tolower)
+icon <- read_csv(here("Data", "perry_winter_2017_iconicity.csv")) %>%
+  rename_with(tolower)
+# merge
+data_iconicity <- left_join(lyn, icon)
+glimpse(data_iconicity)
+fm_iconicity <- lm(iconicity ~ dominantmodality, data_iconicity)
+fm_iconicity %>% tidy() %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+# intercept = ?
+# get categories (my way)
+icon_preds <- data_iconicity %>%
+  distinct(dominantmodality) %>%
+  arrange(dominantmodality)
+icon_preds$fit <- round(predict(fm_iconicity, icon_preds), 3)
+# how closely do these match the means?
+means <- data_iconicity %>%
+  group_by(dominantmodality) %>%
+  summarize(
+    mean = mean(iconicity, na.rm = T) %>% round(3)
+  )
+# add these to tibble
+icon_preds <- icon_preds %>%
+  left_join(means)
+icon_preds # perfect match, which makes sense because with one categorical predictor, the prediction is the mean per category
+```
+
