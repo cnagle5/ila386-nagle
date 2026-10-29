@@ -813,3 +813,187 @@ icon_preds <- icon_preds %>%
 icon_preds # perfect match, which makes sense because with one categorical predictor, the prediction is the mean per category
 ```
 
+## Winter Chapter 8
+
+```{r}
+# continuous * categorical
+data_icon <- read_csv(here("Data", "perry_winter_2017_iconicity.csv")) %>%
+  rename_with(tolower)
+glimpse(data_icon)
+
+data_icon %>%
+  group_by(pos) %>%
+  count() %>%
+  arrange(n)
+
+data_icon <- data_icon %>%
+  filter(pos %in% c("Noun", "Verb"))
+
+fm_1 <- lm(iconicity ~ ser + pos, data_icon)
+tidy(fm_1) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+
+fm_2 <- lm(iconicity ~ ser*pos, data_icon)
+tidy(fm_2) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+
+# centering ser
+data_icon <- data_icon %>%
+  mutate(
+    ser_c = scale(ser, scale = F) # center without scaling
+  )
+
+fm_2.1 <- lm(iconicity ~ ser_c*pos, data_icon)
+tidy(fm_2.1) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+
+# what would happen if we standardized ser?
+# what would happen if we contrast-coded pos?
+# what would the estimates represent in these updated models?
+
+# how do we make a prediction plot for ser from -2 to 2 (standardized scale) for nouns and verbs?
+
+# categorical * categorical
+data_sim <- read_csv(here("Data", "winter_matlock_2013_similarity.csv")) %>%
+  rename_with(tolower) %>%
+  mutate(
+    phon = as.factor(phon),
+    sem = as.factor(sem)
+  )
+glimpse(data_sim)
+data_sim %>%
+  count(phon, sem)
+data_sim <- data_sim %>%
+  filter(!is.na(distance))
+data_sim %>%
+  ggplot(aes(distance)) +
+  geom_histogram(fill = "white", color = "black") +
+  theme_minimal()
+
+fm_3 <- lm(distance ~ phon + sem, data_sim)
+tidy(fm_3) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+
+fm_4 <- lm(distance ~ phon*sem, data_sim)
+tidy(fm_4) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+
+# when in doubt, write the equation
+
+# references
+# semantically different = 0 (reference)
+# phonologically different = 0 (reference)
+# semantically similar = 1
+# phonologically similar = 1
+
+# equation
+# distance = intercept + b1*sem + b2*phon + b3*phon*sem
+# sem-d, phon-d; distance = intercept
+# sem-d, phon-s; distance = intercept + phon
+# sem-s, phon-d; distance = intercept + sem
+# sem-s, phon-s; distance = intercept + phon + sem + phon*sem
+
+# can also use predict, but it's good to sanity check yourself
+phon <- rep(c("different", "similar"), each = 2)
+sem <- rep(c("different", "similar"), times = 2)
+data_new <- tibble(phon, sem)
+data_new$fit <- predict(fm_4, data_new) # does not work because of capitalization difference
+phon <- rep(c("Different", "Similar"), each = 2)
+sem <- rep(c("Different", "Similar"), times = 2)
+data_new <- tibble(phon, sem)
+data_new$fit <- predict(fm_4, data_new) # works
+data_new
+
+# can sum code (-1, 1) or contrast code (-0.5, 0.5); what is the difference?
+data_sim <- data_sim %>%
+  mutate(
+    phon_sum = ifelse(phon == "Different", -1, 1),
+    sem_sum = ifelse(sem == "Different", -1, 1),
+    phon_contrast = ifelse(phon == "Different", -0.5, 0.5),
+    sem_contrast = ifelse(sem == "Different", -0.5, 0.5)
+  )
+# sum
+fm_4.1 <- lm(distance ~ phon_sum*sem_sum, data_sim)
+tidy(fm_4.1) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+# contrast
+fm_4.2 <- lm(distance ~ phon_contrast*sem_contrast, data_sim)
+tidy(fm_4.2) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+
+# continuous * continuous
+
+data_lonely <- read_csv(here("Data", "sidhu&pexman_2017_iconicity.csv")) %>%
+  rename_with(tolower) %>%
+  filter(iconicity >= 0)
+
+fm_5 <- lm(iconicity ~ ser*arc, data_lonely)
+tidy(fm_5) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+data_lonely <- data_lonely %>%
+  mutate(
+    ser_z = scale(ser),
+    arc_z = scale(arc)
+  )
+fm_5.1 <- lm(iconicity ~ ser_z*arc_z, data_lonely)
+tidy(fm_5.1) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+
+# nonlinear effects - we won't go over this, but if you're interested, come see me
+```
+
+### 8.8.1
+
+```{r}
+data_icon <- read_csv(here("Data", "perry_winter_2017_iconicity.csv")) %>%
+  rename_with(tolower) %>%
+  filter(pos %in% c("Noun", "Verb", "Adjective")) %>%
+  mutate(
+    ser_c = scale(ser, scale = F)
+  )
+fm_8.8.1 <- lm(iconicity ~ ser_c*pos, data_icon)
+tidy(fm_8.8.1) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+# what if we wanted the average effect of ser_c across all categories?
+```
+
