@@ -985,15 +985,19 @@ data_icon <- read_csv(here("Data", "perry_winter_2017_iconicity.csv")) %>%
   rename_with(tolower) %>%
   filter(pos %in% c("Noun", "Verb", "Adjective")) %>%
   mutate(
-    ser_c = scale(ser, scale = F)
+    pos_sum = as.factor(pos),
+    ser_c = scale(ser, scale = F),
+    ser_z = scale(ser)
   )
-fm_8.8.1 <- lm(iconicity ~ ser_c*pos, data_icon)
+contrasts(data_icon$pos_sum) <- contr.sum(3)
+fm_8.8.1 <- lm(iconicity ~ ser_z*pos_sum, data_icon)
 tidy(fm_8.8.1) %>%
   mutate(
     across(
       where(is.numeric), ~ round(.x, 3)
     )
   )
-# what if we wanted the average effect of ser_c across all categories?
+plot(fm_8.8.1)
+# what if we wanted the average effect of ser_z across all categories?
 ```
 
