@@ -1001,3 +1001,87 @@ plot(fm_8.8.1)
 # what if we wanted the average effect of ser_z across all categories?
 ```
 
+## Winter Chapter 9
+
+```{r}
+# load the data
+data_chem <- read_csv(here("Data", "winter_2016_senses_valence.csv")) %>%
+  rename_with(tolower) %>%
+  filter(modality %in% c("Taste", "Smell"))
+
+# compute effect size
+effectsize::cohens_d(val ~ modality, data = data_chem)
+```
+
+### 9.9.1
+
+```{r}
+n <- 50
+y <- c(
+  rnorm(n, mean = 5, sd = 1),
+  rnorm(n, mean = 2, sd = 1)
+)
+x <- rep(c("A", "B"), each = n)
+df <- tibble(x, y)
+effectsize::cohens_d(y ~ x, df)
+
+# increase sd (d should decrease)
+y <- c(
+  rnorm(n, mean = 5, sd = 2),
+  rnorm(n, mean = 2, sd = 2)
+)
+x <- rep(c("A", "B"), each = n)
+df <- tibble(x, y)
+effectsize::cohens_d(y ~ x, df)
+```
+
+### 9.9.2
+
+```{r}
+x <- rnorm(50)
+y <- 3*x + rnorm(50, sd = 2) # slope = 3; what is the added rnorm() part?
+plot(x, y, main = cor(x, y))
+
+# increase sd (r should decrease)
+y <- 3*x + rnorm(50, sd = 4)
+plot(x, y, main = cor(x, y))
+
+# what would happen if we removed rnorm(50, sd = 2)?
+
+```
+
+### 9.9.3
+
+```{r}
+n <- 10
+meandiff <- 2
+my_sd <- 2
+t.test(
+  rnorm(n, sd = my_sd),
+  rnorm(n, sd = my_sd) + meandiff
+)
+
+# write a simple function to run this repeatedly
+run_ttest <- function(reps, n, my_sd, meandiff) {
+  results <- data.frame(t = numeric(reps), p = numeric(reps))
+
+  for (i in 1:reps) {
+    test <- t.test(
+      rnorm(n, sd = my_sd),
+      rnorm(n, sd = my_sd) + meandiff
+    )
+    results$t[i] <- test$statistic
+    results$p[i] <- test$p.value
+  }
+
+  results
+}
+
+# run it with Winter's values
+run_ttest(reps = 100, n = 10, my_sd = 2, meandiff = 2) %>%
+  mutate(
+    significant = ifelse(p < .05, "yes", "no")
+  ) %>%
+  count(significant)
+```
+
