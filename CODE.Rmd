@@ -1047,7 +1047,9 @@ y <- 3*x + rnorm(50, sd = 4)
 plot(x, y, main = cor(x, y))
 
 # what would happen if we removed rnorm(50, sd = 2)?
-
+x <- rnorm(50)
+y <- 3*x
+plot(x, y, main = cor(x, y))
 ```
 
 ### 9.9.3
@@ -1078,10 +1080,45 @@ run_ttest <- function(reps, n, my_sd, meandiff) {
 }
 
 # run it with Winter's values
-run_ttest(reps = 100, n = 10, my_sd = 2, meandiff = 2) %>%
+run_ttest(reps = 100, n = 28, my_sd = .12, meandiff = .50) %>%
   mutate(
     significant = ifelse(p < .05, "yes", "no")
   ) %>%
   count(significant)
+# yes / no
+#  60 / 40
+#. 58 / 42
+#. 49 / 51
+
+# estimate power based on standardized effect size
+# install.packages("pwr")
+# mean estimate
+pwr::pwr.t.test(
+  d = .50,
+  sig.level = .05,
+  power = .80,
+  type = "two.sample"
+  ) # 64 per group
+# smallest estimate
+pwr::pwr.t.test(
+  d = .25,
+  sig.level = .05,
+  power = .80,
+  type = "two.sample"
+  ) # 253 per group
+
+# what about within subjects
+pwr::pwr.t.test(
+  d = .50,
+  sig.level = .05,
+  power = .80,
+  type = "paired"
+  ) # 34
+pwr::pwr.t.test(
+  d = .25,
+  sig.level = .05,
+  power = .80,
+  type = "paired"
+  ) # 128
 ```
 
