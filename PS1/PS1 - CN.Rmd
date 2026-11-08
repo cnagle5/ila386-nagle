@@ -1,0 +1,145 @@
+---
+title: "PS 1"
+author: "Charlie Nagle"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup}
+
+library(tidyverse)
+library(here)
+library(broom)
+
+```
+
+## Wrangling, cleaning, merging
+
+```{r}
+{r}
+# identification data
+data_id <- read_csv(here("PS1", "data_stress.csv")) %>%
+  janitor::clean_names() %>%
+  select(id, trial, screen, response, audio) %>%
+  filter(screen == "response") %>%
+  mutate(audio = str_remove_all(audio, ".mp3")) %>%
+  separate_wider_delim(
+    audio,
+    delim = "_",
+    names = c("talker", "talkerid", "tense", "type", "verb", "sentence")
+  ) %>%
+  select(-talkerid) %>%
+  rename(verb_conjugation = verb) %>%
+  mutate(response = stringi::stri_trans_general(response, "Latin-ASCII"))
+# answer sheet
+data_answers <- read_csv(here("PS1", "data_answers.csv")) %>%
+  janitor::clean_names() %>%
+  rename(verb = target_verb,
+         vowel = stem_vowel)
+# merge
+data_id <- merge(data_id, 
+                 data_answers %>% dplyr::select(sentence, tense, verb, subject, answer), 
+                 by = c("sentence", "tense"))
+# add proficiency data
+data_proficiency <- read_csv(here("PS1", "data_proficiency.csv")) %>%
+  janitor::clean_names() %>%
+  filter(tag == "click") %>%
+  dplyr::select(id, answer, response) %>%
+  mutate(score = ifelse(response == answer, 1, 0)) %>%
+  group_by(id) %>%
+  summarize(proficiency = mean(score, na.rm = T))
+# merge
+data_id <- merge(data_id, data_proficiency, by = "id")
+# make outcome
+data_id <- data_id %>%
+  mutate(score = ifelse(response == answer, 1, 0))
+
+# remove clutter
+rm(data_answers, data_proficiency)
+
+# sanity check
+# number of trials per participant
+data_id %>%
+  group_by(id) %>%
+  count() # a few got cut, but we have 79 or 80 for each individual
+# normally, would go recover those trials and diagnose the issue, but for now will move on
+
+# create summary data (one score per item type per participant)
+data_summary <- data_id %>%
+  group_by(id, type, proficiency) %>% # including proficiency here so that it's retained
+  summarize(
+    score = mean(score, na.rm = T)
+  ) %>%
+  ungroup()
+```
+
+## Visualization
+
+```{r}
+# score by item type
+ggplot(data_summary, aes(type, score)) +
+  geom_boxplot() +
+  theme_bw() +
+  labs(x = "Trial Type",
+       y = "Accuracy")
+# participants performed worse on targets than on fillers (distractors)
+
+# proficiency and score
+ggplot(data_summary, aes(proficiency, score)) +
+  geom_point(shape = 21, fill = "white") +
+  geom_smooth(method = "lm") +
+  theme_bw() +
+  labs(x = "Proficiency",
+       y = "Accuracy")
+# the higher the participant's proficiency, the better they performed
+
+# both together
+ggplot(data_summary, aes(proficiency, score, fill = type)) +
+  geom_point(shape = 21) +
+  geom_smooth(method = "lm", color = "black") +
+  theme_bw() +
+  labs(x = "Proficiency",
+       y = "Accuracy")
+# alternative (separate panels)
+ggplot(data_summary, aes(proficiency, score, fill = type)) +
+  geom_point(shape = 21) +
+  geom_smooth(method = "lm", color = "black") +
+  theme_bw() +
+  labs(x = "Proficiency",
+       y = "Accuracy") +
+  facet_wrap(~ type)
+```
+
+## Analysis
+
+```{r}
+# reference level for type = filler
+# intercept represents predicted performance on fillers when proficiency = 0
+lm(score ~ proficiency + type, data_summary) %>%
+  tidy() %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+
+# better model (contrast-coding for type, z-scoring proficiency)
+data_summary <- data_summary %>%
+  mutate(
+    type_contrast = ifelse(type == "filler", -0.5, 0.5),
+    proficiency_z = scale(proficiency)
+  )
+
+# refit
+# intercept represents grand mean (performance on both filled and target)
+# type_contrast represents the difference
+# proficiency represents change expressed as 1 sd
+lm(score ~ proficiency_z + type_contrast, data_summary) %>%
+  tidy() %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+```
+
