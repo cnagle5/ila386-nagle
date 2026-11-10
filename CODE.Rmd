@@ -1122,3 +1122,191 @@ pwr::pwr.t.test(
   ) # 128
 ```
 
+##  Winter Chapter 11
+
+### 11.2
+
+```{r}
+data_icon <- read_csv(here("Data", "perry_winter_2017_iconicity.csv")) %>%
+  rename_with(tolower) %>%
+  mutate(
+    ser_z = scale(ser),
+    corteseimag_z = scale(corteseimag),
+    syst_z = scale(syst),
+    freq_z = scale(freq)
+  )
+
+fm_icon_z <- lm(iconicity ~ ser_z + corteseimag_z + syst_z + freq_z, data_icon)
+
+tidy(fm_icon_z) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  ) %>%
+  mutate(
+    ll = estimate - 1.96*std.error,
+    ul = estimate + 1.96*std.error
+  ) # manually add confidence intervals
+
+# automatic
+tidy(fm_icon_z, conf.int = T) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+
+# make the plot
+# doing all steps in one chunk of code
+tidy(fm_icon_z, conf.int = T) %>%
+  filter(term != "(Intercept)") %>%
+  mutate(
+    term = fct_reorder(term, estimate)
+  ) %>%
+  ggplot(aes(term, estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high, width = .2)) +
+  geom_hline(yintercept = 0, linetype = 2) +
+  coord_flip() +
+  theme_minimal()
+```
+
+### 11.3
+
+```{r}
+data_senses <- read_csv(here("Data", "winter_2016_senses_valence.csv")) %>%
+  rename_with(tolower)
+
+fm_senses <- lm(val ~ modality, data_senses)
+
+tidy(fm_senses) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  )
+
+# create a null model for model comparisons
+fm_senses_0 <- lm(val ~ 1, data_senses)
+# compare the models
+anova(fm_senses_0, fm_senses)
+# adding modality significantly improves the fit of the model
+# why does df = 4 in this output?
+
+# this tells you the variable is an important predictor
+# it doesn't tell you anything about pairwise comparisons by modality
+
+# need emmeans for that
+# install.packages("emmeans")
+library(emmeans)
+emmeans(fm_senses, pairwise ~ modality, adjust = "bonferroni")
+# caution: in many cases, it doesn't make sense to run all comparisons
+# can get the specific comparisons that you want (better approach)
+```
+
+### 11.4
+
+```{r}
+# winter's approach
+data_senses <- data_senses %>%
+  mutate(
+    val_z = scale(val),
+    val_abs = abs(val_z)
+  )
+
+fm_senses_abs <- lm(val_abs ~ modality, data_senses)
+anova(fm_senses_abs)
+
+# taste/smell and sight/sound/touch
+data_senses <- data_senses %>%
+  mutate(
+    chemvsrest = ifelse(modality %in% c("Taste", "Smell"), "Chem", "Other")
+  )
+with(data_senses, table(modality, chemvsrest))
+fm_senses_abs <- lm(val_abs ~ chemvsrest, data_senses)
+tidy(fm_senses_abs) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 3)
+    )
+  ) %>% print()
+
+# alternative approach: set specific contrasts
+# get the grid
+fm_senses_abs <- lm(val_abs ~ modality, data_senses)
+grid_senses <- emmeans(fm_senses_abs, ~ modality) # returns order of predictors
+# look at the reference grid
+grid_senses
+# build a grid of contrasts
+contrasts_senses <- list(
+  smellvstaste = c(0, -1, 0, 1, 0),
+  chemvsother  = c(-1/3, 1/2, -1/3, 1/2, -1/3)
+)
+# run contrasts
+contrast(grid_senses, contrasts_senses) # returns unadjusted p values
+contrast(grid_senses, contrasts_senses, adjust = "bonferroni")
+
+# check estimates
+# contrast approach:  0.265, SE = 0.084
+# winter's approach: -0.342, SE = 0.080
+# why the difference?
+# 1. sign is different because in model, other - chem; contrast, chem - other
+# 2. estimate is different because of unbalanced n (model is weighted by n)
+data_senses %>%
+  group_by(modality) %>%
+  count()
+```
+
+### 11.5
+
+```{r}
+newpreds <- tibble(modality = sort(unique(data_senses$modality)))
+fits <- predict(fm_senses, newpreds)
+ses <- predict(fm_senses, newpreds, se.fit = T)$se.fit
+# manual confidence interval
+ci_tib <- tibble(fits, ses) %>%
+  mutate(
+    lb = fits - 1.96 * ses,
+    ub = fits + 1.96 *ses
+  ) %>%
+  round(3)
+ci_tib
+# automatic
+predict(fm_senses, newpreds, interval = "confidence") %>% round(3)
+
+# bind and plot
+sense_preds <- cbind(newpreds, ci_tib)
+sense_preds %>%
+  mutate(
+    modality = fct_reorder(modality, fits)
+  ) %>%
+  ggplot(aes(modality, fits)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = lb, ymax = ub), width = .2) +
+  theme_minimal() +
+  labs(x = "Modality", y = "Predicted Valence")
+```
+
+### 11.6
+
+```{r}
+data_elp <- read_csv(here("Data", "ELP_frequency.csv")) %>%
+  rename_with(tolower) %>%
+  mutate(
+    freq_log10 = log10(freq)
+  )
+fm_elp <- lm(rt ~ freq_log10, data_elp)
+newdata <- tibble(freq_log10 = seq(0, 5, 0.01))
+preds <- predict(fm_elp, newdata, interval = "confidence")
+# missing step = bind the data
+preds <- cbind(newdata, preds)
+preds %>%
+  ggplot(aes(freq_log10, fit)) +
+  geom_ribbon(aes(ymin = lwr, ymax = upr),
+              fill = "gray", alpha = 0.5) +
+  geom_line() +
+  geom_text(data = data_elp, aes(y = rt, label = word)) +
+  theme_minimal()
+```
+
