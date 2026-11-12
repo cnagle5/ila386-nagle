@@ -1346,8 +1346,6 @@ ggplot(data_alcohol, aes(bac, speech_error)) +
   # plot the prediction
   geom_line(data = predictions, aes(bac_vals, probs)) +
   theme_minimal()
-
-# let's try computing probabilities first and then summing them, what happens?
 ```
 
 ### 12.5
@@ -1359,6 +1357,9 @@ data_dative <- languageR::dative %>%
   rename_with(tolower)
 glimpse(data_dative)
 table(data_dative$realizationofrecipient)
+# tidyverse
+data_dative %>%
+  count(realizationofrecipient)
 
 fm_dative <- glm(realizationofrecipient ~ animacyofrec, data = data_dative, family = "binomial")
 tidy(fm_dative) %>%
@@ -1443,6 +1444,7 @@ ges_predsci %>%
   geom_point(size = 3) +
   geom_errorbar(aes(ymin = lb, ymax = ub), width = 0.5) +
   scale_x_continuous(breaks = 1:9) +
+  scale_y_continuous(label = scales::percent) +
   labs(
     x = "Pinkie Curl",
     y = "p(y = Shape)"
@@ -1456,7 +1458,42 @@ ges_predsci %>%
 # 12.8.1
 # if centered, then pinkie curl = mean(pinkie_curl); note that cell sizes are imbalanced, so this will not be the mean of 1:9
 mean(data_ges$pinkie_curl) # mean = 4.85
-# intercept estimate will change, estimte for pinkie_curl will not
+# intercept estimate will change, estimate for pinkie_curl will not
+data_ges <- data_ges %>%
+  mutate(
+    pinkie_curl_c = scale(pinkie_curl, scale = F)
+  )
+fm_ges_c <- glm(choice ~ pinkie_curl_c, data_ges, family = "binomial")
+tidy(fm_ges_c) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 2)
+    )
+  ) %>% print()
+plogis(0.4) %>% round(2) # 60% probability @ mean(pinkie_curl)
+# sanity check: intercept should change, estimate for pinkie_curl should not
+tidy(fm_ges) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 2)
+    )
+  ) %>% print()
+plogis(1.07) %>% round(2) # 74% probability @ pinkie_curl = 0 (! does not make sense)
+
+# usually, when we center, get the mean, x - mean: 0 = mean
+# set the intercept (center), on 1? (pinkie_curl)
+data_ges <- data_ges %>%
+  mutate(
+    pinkie_curl_c1 = pinkie_curl - 1
+  )
+glm(choice ~ pinkie_curl_c1, data_ges, family = "binomial") %>%
+  tidy() %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 2)
+    )
+  ) %>% print()
+plogis(.93) %>% round(2) # 72% probability @ pinkie_curl = 1
 
 # 12.8.2
 fm_ges <- glm(choice ~ pinkie_curl + index_curve, data_ges, family = "binomial") # predicts shape (height ... shape)
@@ -1469,6 +1506,20 @@ tidy(fm_ges) %>%
 # is this a good model?
 # what does the intercept represent?
 # what do the estimates for pinkie_curl and index_curve represent?
+# no!!!!!!!!! must standardize
+data_ges <- data_ges %>%
+  mutate(
+    pinkie_curl_z = scale(pinkie_curl),
+    index_curve_z = scale(index_curve)
+  )
+fm_ges <- glm(choice ~ pinkie_curl_z + index_curve_z, data_ges, family = "binomial") # predicts shape (height ... shape)
+tidy(fm_ges) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 2)
+    )
+  )
+
 
 # 12.8.3
 data_ges <- data_ges %>%
