@@ -1121,6 +1121,7 @@ pwr::pwr.t.test(
   type = "paired"
   ) # 128
 ```
+<<<<<<< Updated upstream
 
 ##  Winter Chapter 11
 
@@ -1307,6 +1308,210 @@ preds %>%
               fill = "gray", alpha = 0.5) +
   geom_line() +
   geom_text(data = data_elp, aes(y = rt, label = word)) +
+  theme_minimal()
+```
+
+##  Winter Chapter 12
+
+### 12.4
+
+```{r}
+data_alcohol <- read_csv(here("Data", "speech_errors.csv")) %>%
+  rename_with(tolower)
+
+fm_alcohol <- glm(speech_error ~ bac, data_alcohol, family = "binomial")
+
+tidy(fm_alcohol) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 2)
+    )
+  )
+
+# formula
+# logits = -3.64 + 16.12 * bac
+# predicted probability for bac = 0 (intercept only)
+plogis(-3.64) * 100 # 2.56%
+# predicted probability for bac = 0.3
+plogis((-3.64 + 16.12 * .3)) * 100 # 76.78%
+
+# make a prediction
+bac_vals <- seq(0, 0.4, 0.01)
+y_preds <- predict(fm_alcohol, newdata = data.frame(bac = bac_vals))
+predictions <- tibble(bac_vals, y_preds) %>%
+  mutate(probs = plogis(y_preds))
+ggplot(data_alcohol, aes(bac, speech_error)) +
+  # plot the observed data using geom_jitter() to stagger points
+  geom_jitter(size = 4, alpha = 0.6, height = 0.05) +
+  # plot the prediction
+  geom_line(data = predictions, aes(bac_vals, probs)) +
+  theme_minimal()
+
+# let's try computing probabilities first and then summing them, what happens?
+```
+
+### 12.5
+
+```{r}
+library(languageR)
+# extract the dative data
+data_dative <- languageR::dative %>%
+  rename_with(tolower)
+glimpse(data_dative)
+table(data_dative$realizationofrecipient)
+
+fm_dative <- glm(realizationofrecipient ~ animacyofrec, data = data_dative, family = "binomial")
+tidy(fm_dative) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 2)
+    )
+  )
+
+# my approach
+data_dative <- data_dative %>%
+  mutate(
+    ispp = ifelse(realizationofrecipient == "NP", 0, 1),
+    isanimate = ifelse(animacyofrec == "inanimate", 0, 1)
+  )
+fm_dative_cn <- glm(ispp ~ isanimate, data = data_dative, family = "binomial")
+tidy(fm_dative_cn) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 2)
+    )
+  )
+# probabilities
+plogis(0.08) * 100 # 52% chance of PP when inanimate
+plogis(0.08 + -1.23) * 100 # 24.05% chance when animate
+```
+
+### 12.6
+
+```{r}
+data_ges <- read_csv(here("Data", "hassemer_winter_2016_gesture.csv")) %>%
+  rename_with(tolower) %>%
+  mutate(
+    choice = as.factor(choice),
+    isheight = ifelse(choice == "height", 1, 0)
+  )
+glimpse(data_ges)
+head(data_ges)
+table(data_ges$pinkie_curl)
+table(data_ges$choice)
+# both together
+table(data_ges$pinkie_curl, data_ges$choice)
+table(data_ges$choice, data_ges$pinkie_curl)
+round(prop.table(table(data_ges$choice, data_ges$pinkie_curl)), 3)
+# these values look different than those shown on p. 212 because this calculates the proportion out of the entire sample
+# winter's code computes proportion based on sample at each level of pinkie curl
+round(table(data_ges$pinkie_curl, data_ges$choice) / rowSums(table(data_ges$pinkie_curl, data_ges$choice)), 2)
+
+fm_ges <- glm(choice ~ pinkie_curl, data_ges, family = "binomial") # predicts shape (height ... shape)
+tidy(fm_ges) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 2)
+    )
+  )
+ges_preds <- tibble(pinkie_curl = 1:9)
+plogis(predict(fm_ges, ges_preds)) %>%
+  round(2)
+# predict directly on the probability scale
+predict(fm_ges, ges_preds, type = "response") %>%
+  round(2)
+
+# confidence interval
+ges_preds <- tibble(pinkie_curl = 1:9)
+ges_predsci <- as_tibble(
+  predict(
+    fm_ges,
+    ges_preds,
+    se.fit = T
+    )
+  ) %>%
+  mutate(
+    prob = plogis(fit),
+    lb   = plogis(fit - 1.96 * se.fit),
+    ub   = plogis(fit + 1.96 * se.fit)
+  ) %>%
+  bind_cols(ges_preds)
+
+# plot
+ges_predsci %>% 
+  ggplot(aes(pinkie_curl, prob)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lb, ymax = ub), width = 0.5) +
+  scale_x_continuous(breaks = 1:9) +
+  labs(
+    x = "Pinkie Curl",
+    y = "p(y = Shape)"
+  ) +
+  theme_minimal()
+```
+
+### 12.8
+
+```{r}
+# 12.8.1
+# if centered, then pinkie curl = mean(pinkie_curl); note that cell sizes are imbalanced, so this will not be the mean of 1:9
+mean(data_ges$pinkie_curl) # mean = 4.85
+# intercept estimate will change, estimte for pinkie_curl will not
+
+# 12.8.2
+fm_ges <- glm(choice ~ pinkie_curl + index_curve, data_ges, family = "binomial") # predicts shape (height ... shape)
+tidy(fm_ges) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 2)
+    )
+  )
+# is this a good model?
+# what does the intercept represent?
+# what do the estimates for pinkie_curl and index_curve represent?
+
+# 12.8.3
+data_ges <- data_ges %>%
+  mutate(
+    pinkie_curl_c = scale(pinkie_curl, scale = F),
+    pinkie_curl_quad = pinkie_curl_c^2
+  )
+fm_ges <- glm(choice ~ pinkie_curl_c + pinkie_curl_quad, data_ges, family = "binomial") # predicts shape (height ... shape)
+tidy(fm_ges) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 2)
+    )
+  ) # the more curled, the stronger the effect (intensification of the effect with curl)
+# let's predict
+# confidence interval
+ges_preds <- tibble(pinkie_curl = 1:9) %>%
+  mutate(
+    pinkie_curl_c = scale(pinkie_curl),
+    pinkie_curl_quad = pinkie_curl_c^2
+  )
+ges_predsci <- as_tibble(
+  predict(
+    fm_ges,
+    ges_preds,
+    se.fit = T
+    )
+  ) %>%
+  mutate(
+    prob = plogis(fit),
+    lb   = plogis(fit - 1.96 * se.fit),
+    ub   = plogis(fit + 1.96 * se.fit)
+  ) %>%
+  bind_cols(ges_preds)
+ges_predsci %>% 
+  ggplot(aes(pinkie_curl, prob)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lb, ymax = ub), width = 0.5) +
+  # scale_x_continuous(breaks = 1:9) +
+  labs(
+    x = "Pinkie Curl",
+    y = "p(y = Shape)"
+  ) +
   theme_minimal()
 ```
 
