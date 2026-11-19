@@ -1566,3 +1566,121 @@ ges_predsci %>%
   theme_minimal()
 ```
 
+## Winter Chapter 15
+
+```{r}
+# set seed and generate data
+set.seed(666)
+ppt_ids <- gl(6, 20)
+it_ids <- gl(20, 1) %>%
+  rep(6)
+log_freqs <- round(rexp(20) * 5, 2) %>%
+  rep(6)
+xdata <- tibble(
+  ppt = ppt_ids,
+  item = it_ids,
+  freq = log_freqs
+) %>%
+  mutate(
+    int = 300,
+    ppt_ints = rnorm(6, sd = 40) %>% rep(each = 20),
+    item_ints = rnorm(20, sd = 20) %>% rep(times = 6),
+    error = rnorm(120, sd = 20),
+    effect = (-5) * freq,
+    dur = int + ppt_ints + item_ints + error + effect
+  )
+
+# analyze the data
+library(lme4)
+fm_dur <- lmer(dur ~ freq +
+                 (1 | ppt) +
+                 (1 | item),
+               xdata, REML = F)
+summary(fm_dur)
+# broom does not work but broom mixed does
+broom.mixed::tidy(fm_dur) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 2)
+    )
+  )
+# coef returns actual estimates (fixed and random)
+# ranef returns deviation
+coef(fm_dur)
+ranef(fm_dur)
+
+# skipping the bad model and the singular fit
+
+# likelihood tests
+# fit the intercept model
+fm_dur_null <- lmer(dur ~ 1 +
+                 (1 | ppt) +
+                 (1 | item),
+               xdata, REML = F)
+# model comparison
+anova(fm_dur_null, fm_dur)
+
+# fit the model with by-participant but no by-item random effects
+fm_dur1 <- lmer(dur ~ freq +
+                 (1 | ppt) +
+                 (1 | item),
+               xdata, REML = T)
+fm_dur2 <- lmer(dur ~ 1 +
+                 (1 | ppt),
+               xdata, REML = T)
+anova(fm_dur2, fm_dur1, refit = F)
+
+# afex
+library(afex)
+fm_afex <- mixed(dur ~ freq +
+        (1 | ppt) +
+        (1 | item),
+      xdata, method = "LRT")
+
+# get rsquared
+library(MuMIn)
+r.squaredGLMM(fm_afex$full_model)
+
+# predictions
+xvals <- seq(0, 18, 0.01)
+yvals <- (
+  fixef(fm_afex$full_model)[1] +
+    fixef(fm_afex$full_model)[2] * xvals
+)
+```
+
+### 15.8
+
+```{r}
+data_selfie <- read_csv(here("Data", "ruth_page_selfies.csv")) %>%
+  rename_with(tolower) %>%
+  mutate(
+    uglycat = factor(uglycat)
+  )
+
+fm_selfies <- glmer(uglycat ~ angle +
+                      (1 + angle | id),
+                    data = data_selfie, family = "binomial")
+allFit(fm_selfies)
+fm_selfies <- glmer(uglycat ~ angle +
+                      (1 + angle | id),
+                    data = data_selfie, family = "binomial", control = glmerControl(optimizer = "bobyqa"))
+tidy(fm_selfies) %>%
+  mutate(
+    across(
+      where(is.numeric), ~ round(.x, 2)
+    )
+  )
+
+# 15.11.2
+# compute probability of an ugly response when angle = from below
+plogis(0.90) # 71 %
+# compute probability when angle = level
+plogis(
+  (0.90 - 1.48)
+) # 36%
+
+# can also use emmeans
+emmeans::emmeans(fm_selfies, ~ angle, type = "response")
+```
+
