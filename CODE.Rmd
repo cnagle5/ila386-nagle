@@ -1684,3 +1684,138 @@ plogis(
 emmeans::emmeans(fm_selfies, ~ angle, type = "response")
 ```
 
+##   PS2
+
+###  AX
+
+#### Wrangling
+
+```{r}
+data_ps2 <- read_csv(here("PS2", "data.csv")) %>%
+  janitor::clean_names() # get rid of any odd characters
+# inspect
+glimpse(data_ps2)
+# task_name appears to be an important grouping variable
+# look at its levels
+data_ps2 <- data_ps2 %>%
+  mutate(
+    task_name = as.factor(task_name)
+  )
+levels(data_ps2$task_name)
+# AX Discrimination Task (Custom Build)
+# Identification_pronoun
+# Identification_word
+# Lexical Stress Spanish Lextale
+
+# let's split these into separate dfs for wrangling
+data_ax <- data_ps2 %>%
+  filter(task_name == "AX Discrimination Task (Custom Build)")
+data_idp <- data_ps2 %>%
+  filter(task_name == "Identification_pronoun")
+data_idw <- data_ps2 %>%
+  filter(task_name == "Identification_word")
+data_lextale <- data_ps2 %>%
+  filter(task_name == "Lexical Stress Spanish Lextale")
+
+# work with ax data
+glimpse(data_ax)
+# useful:
+#   participant_private_id
+#   order_f55i
+#.  response
+#.  correct
+#.  spreadsheet_signal
+#.  spreadsheet_base
+#.  spreadsheet_word_a
+#.  spreadsheet_word_b
+#.  spreadsheet_match_type
+
+# start here
+data_ax <- data_ax %>%
+  select(
+    id = participant_private_id,
+    order = order_f55i,
+    response, correct,
+    spreadsheet_signal, spreadsheet_base, 
+    spreadsheet_word_a, spreadsheet_word_b, spreadsheet_match_type
+  )
+head(data_ax, 15)
+# missing a column indicating the response row, need to find it
+data_ps2 %>%
+  filter(task_name == "AX Discrimination Task (Custom Build)") %>%
+  glimpse()
+# may be tag or component_name
+
+data_ax <- data_ps2 %>%
+  filter(task_name == "AX Discrimination Task (Custom Build)") %>%
+  select(
+    id = participant_private_id,
+    order = order_f55i,
+    response, correct,
+    spreadsheet_signal, spreadsheet_base, 
+    spreadsheet_word_a, spreadsheet_word_b, spreadsheet_match_type,
+    tag, component_name
+  ) %>%
+  filter(component_name == "Click Response")
+head(data_ax, 15) # found it! component_name = "Click Response"
+# ax = done, can eliminate unnecessary columns if needed
+```
+
+#### Visualization
+
+```{r}
+data_ax %>%
+  group_by(id, spreadsheet_signal) %>%
+  summarize(
+    mean = mean(correct)
+  ) %>%
+  ggplot(aes(spreadsheet_signal, mean)) +
+  geom_violin() +
+  geom_jitter(alpha = 0.5, width = 0.1, height = 0) +
+  stat_summary(geom = "point", size = 5, shape = 21, fill = "orange") +
+  theme_minimal()
+```
+
+###  ID
+
+#### Wrangling
+
+```{r}
+data_id <- data_ps2 %>%
+  janitor::clean_names() %>%
+  filter(task_name == "Identification_pronoun" |
+           task_name == "Identification_word") %>%
+  select(
+    id = participant_private_id,
+    order = order_f55i,
+    response, correct,
+    audio = spreadsheet_audio,
+    talker_id = spreadsheet_talker_id,
+    taler_sex = spreadsheet_talker_sex,
+    verb = spreadsheet_verb,
+    type = spreadsheet_type,
+    tense = spreadsheet_tense,
+    correct_response = spreadsheet_correct_response,
+    component_name,
+    task_name
+  ) %>%
+  filter(component_name == "Click Response")
+```
+
+#### Visualization
+
+```{r}
+# by talker and tense
+data_id %>%
+  group_by(id, task_name, tense) %>%
+  summarize(
+    mean = mean(correct)
+  ) %>%
+  ggplot(aes(tense, mean, fill = task_name, color = task_name)) +
+  geom_violin(alpha = 0.2) +
+  geom_jitter(alpha = 0.1, width = 0.1, height = 0) +
+  stat_summary(geom = "point", size = 5, shape = 21) +
+  facet_wrap(~ task_name, ncol = 4) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
